@@ -20,11 +20,6 @@ import java.util.Optional;
 import javax.imageio.ImageIO;
 
 public class ImageProcessingFunction {
-    Dotenv dotenv = Dotenv.configure().load();
-
-    String connectionString = dotenv.get("STORAGE_CONNECTION_STRING");
-    String containerName = dotenv.get("STORAGE_CONTAINER_NAME");
-
     @FunctionName("ImageProcessingFunction")
     public HttpResponseMessage run(
             @HttpTrigger(name = "req", methods = {
@@ -33,7 +28,7 @@ public class ImageProcessingFunction {
 
         context.getLogger().info("Java HTTP trigger processed a request.");
 
-        String blobUrl = "https://imgprocessing28e51d5.blob.core.windows.net/images/6ydirw2ugyb61.jpg";
+        String blobUrl = "https://imgprocessing28e51d5.blob.core.windows.net/images/ekQOnRnjsAzK4nCwNtvR.jpg";
 
         // Download the image from Azure Blob Storage
         byte[] imageBytes = downloadImageFromBlobStorage(blobUrl);
@@ -81,11 +76,24 @@ public class ImageProcessingFunction {
     }
 
     private BufferedImage processImage(BufferedImage image) {
-        // TODO: Implement your image processing logic here
-        // Example: Apply a grayscale filter to the image
+        // Convert the image to grayscale
         BufferedImage processedImage = new BufferedImage(
                 image.getWidth(), image.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
-        processedImage.getGraphics().drawImage(image, 0, 0, null);
+
+        for (int y = 0; y < image.getHeight(); y++) {
+            for (int x = 0; x < image.getWidth(); x++) {
+                int rgb = image.getRGB(x, y);
+                int r = (rgb >> 16) & 0xFF;
+                int g = (rgb >> 8) & 0xFF;
+                int b = rgb & 0xFF;
+
+                int avg = (r + g + b) / 3;
+                int grayRgb = (avg << 16) | (avg << 8) | avg;
+
+                processedImage.setRGB(x, y, grayRgb);
+            }
+        }
+
         return processedImage;
     }
 }
